@@ -33,7 +33,7 @@ public class Main {
             {
                 input = in.readLine();          
                 cmd = qm.command_parser(input);
-                
+                qm.Structing_Data(cmd, input);
 
             }
             catch(IOException e)

@@ -1,6 +1,6 @@
 package client;
 
-import java.net.Socket;
+import java.util.StringTokenizer;
 
 /*
  * 쿼리를 해석하고 서버로 보내고, 결과값을 반환받아 프로그램으로 넘기는 Thread
@@ -27,10 +27,36 @@ public class Query_manager{
         return ret;
     }
 
-    public Data Structing_Data(int cmd)
+    public Data Structing_Data(int cmd,String a)
     {
-        Data a = new Data("a","a");
-        return a;
+        Data data = null;
+        switch(cmd)
+        {
+            case 0:
+                data = Insert_Update(a);
+                break;
+            case 1:
+                break;
+            case 2:
+                data = Insert_Update(a);
+                break;
+            case 3:
+                break;
+        }
+        return data;
+    }
+
+    private Data Insert_Update(String a)
+    {
+        Data d = null;
+        String key;
+        String value;
+        String temp;
+        StringTokenizer token ;
+        temp = a.split(" ")[1];
+        key = temp.split("=")[1];
+        System.out.println(key);
+        return d;
     }
 
 }
