@@ -56,6 +56,7 @@ public class Query_manager{
         temp = a.split(" ")[1];
         key = temp.split("=")[1];
         System.out.println(key);
+
         return d;
     }
 
