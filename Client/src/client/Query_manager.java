@@ -1,6 +1,9 @@
 package client;
 
-import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+
 
 /*
  * 쿼리를 해석하고 서버로 보내고, 결과값을 반환받아 프로그램으로 넘기는 Thread
@@ -8,57 +11,31 @@ import java.util.StringTokenizer;
 
 public class Query_manager{
    
-    public int command_parser(String query)
+    public void command_parser(String query)
     {
-        int ret=-1;
-        String temp;
-        temp = query.split(" ")[0];
-        if(temp.compareTo("insert")==0)
-            ret = 0;
-        else if(temp.compareTo("delete")==0)
-            ret = 1;
-        else if(temp.compareTo("update")==0)
-            ret = 2;
-        else if(temp.compareTo("search")==0)
-            ret = 3;
-        else if(temp.compareTo("help")==0)
-            ret = 4;
+        String[] pattern = {"^(insert) key=\"([a-z]+)\" value=\"([a-z]+)\"","^(delete) key=\"([a-z]+)\"",
+        "^(update) key=\"([a-z]+)\" value=\"([a-z]+)\"","^(search).key=\"([a-z]+)\""};
 
-        return ret;
-    }
-
-    public Data Structing_Data(int cmd,String a)
-    {
-        Data data = null;
-        switch(cmd)
+        for(int i=0;i<pattern.length;i++)
         {
-            case 0:
-                data = Insert_Update(a);
-                break;
-            case 1:
-                break;
-            case 2:
-                data = Insert_Update(a);
-                break;
-            case 3:
-                break;
+            Pattern p = Pattern.compile(pattern[i]);
+            Matcher m = p.matcher(query);
+            while(m.find())
+            {
+                try
+                {
+                    System.out.println(m.group()+"->"+m.group(1)+", "+m.group(2)+", "+m.group(3));
+                }
+                catch(Exception e)
+                {
+                    System.out.println(m.group()+"->"+m.group(1)+", "+m.group(2));
+                }
+            }
         }
-        return data;
+        
     }
 
-    private Data Insert_Update(String a)
-    {
-        Data d = null;
-        String key;
-        String value;
-        String temp;
-        StringTokenizer token ;
-        temp = a.split(" ")[1];
-        key = temp.split("=")[1];
-        System.out.println(key);
-
-        return d;
-    }
+    
 
 }
 
