@@ -3,12 +3,9 @@ package server;
 import java.util.HashMap;
 
 
-public class StorageManager extends Thread{
+public class StorageManager {
     public static HashMap<String,Data> map = new HashMap<String, Data>();
-    public void Run()
-    {
-       
-    }
+    
 
     private int insert()
     {
@@ -18,6 +15,17 @@ public class StorageManager extends Thread{
     private int update()
     {
         int ret=0;
+        return ret;
+    }
+
+    private int delete()
+    {
+        int ret = 0;
+        return ret;
+    }
+    private int search()
+    {
+        int ret =0;
         return ret;
     }
 }
