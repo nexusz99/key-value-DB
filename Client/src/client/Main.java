@@ -10,6 +10,7 @@ import java.net.UnknownHostException;
 public class Main {
 
     public static Query_manager qm ;
+    public static Test_Socket test ;
     public static void main(String[] args) {
         int cmd=-1;
         String input="";
@@ -17,12 +18,13 @@ public class Main {
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
         try
         {
-            input = in.readLine();
-            //Init_Connection(input);
-            test_init();
+            //input = in.readLine();
+            Init_Connection(input);
+            //test_init();
         }
-        catch(IOException e)
+        catch(Exception e)
         {
+            System.exit(-1);
         }
 
         while(true)
@@ -30,14 +32,14 @@ public class Main {
             System.out.print(">");
             try
             {
-                input = in.readLine();          
-                cmd = qm.command_parser(input);
-                qm.Structing_Data(cmd, input);
-
+                input = in.readLine();
+                //cmd = qm.command_parser(input);
+                //qm.Structing_Data(cmd, input);
+                test.Send(input);
             }
             catch(IOException e)
             {
-                System.out.println(e.getMessage());
+                System.out.println(e.getStackTrace());
             }
         }
         
@@ -48,15 +50,17 @@ public class Main {
         
         try
         {
-            Socket sock = new Socket(ip,30621); 
+            Socket sock = new Socket("127.0.0.1",30621);
+            test = new Test_Socket(sock);
+            System.out.println("System Message : 소켓 생성 성공");
         }
         catch(UnknownHostException e)
         {
-            System.out.println(e.getMessage());
+            System.out.println(e.getStackTrace());
         }
         catch(IOException e)
         {
-            System.out.println(e.getMessage());
+            System.out.println(e.getStackTrace());
         }
 
     }
