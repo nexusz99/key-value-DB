@@ -11,10 +11,12 @@ public class Main {
 
     public static Query_manager qm ;
     public static Test_Socket test ;
+    public static Data data;
     public static void main(String[] args) {
-        int cmd=-1;
+        
         String input="";
-        System.out.print("연결할 서버 IP : ");
+        //System.out.print("연결할 서버 IP : ");
+        qm = new Query_manager();
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
         try
         {
@@ -33,9 +35,9 @@ public class Main {
             try
             {
                 input = in.readLine();
-                //cmd = qm.command_parser(input);
-                //qm.Structing_Data(cmd, input);
-                test.Send(input);
+                
+                test.Send(data);
+                
             }
             catch(IOException e)
             {

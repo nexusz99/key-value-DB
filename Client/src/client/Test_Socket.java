@@ -3,6 +3,7 @@ package client;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 public class Test_Socket {
@@ -13,12 +14,11 @@ public class Test_Socket {
     {
         this.sock = sock;
         out = new DataOutputStream(this.sock.getOutputStream());
-        out.write(-1);
     }
 
-    public void Send(String a) throws IOException
+    public void Send(Data a) throws IOException
     {
-        out.flush();
-        out.writeUTF(a);
+        ObjectOutputStream st = new ObjectOutputStream(out);
+        st.writeObject(a);
     }
 }

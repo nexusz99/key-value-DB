@@ -1,8 +1,10 @@
 
 package client;
 
-public class Data {
-    Object key;
-    Object value;
-    int point;
+import java.io.Serializable;
+
+public class Data implements Serializable{
+    public String cmd;
+    public Object key;
+    public Object value;
 }
