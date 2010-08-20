@@ -1,2 +1,0 @@
-server.StorageManager
-server.Data

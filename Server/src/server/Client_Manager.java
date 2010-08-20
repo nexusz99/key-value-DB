@@ -3,8 +3,10 @@
 package server;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
@@ -130,7 +132,7 @@ public class Client_Manager {
         addClient(sc);
     }
 
-    public void read(SelectionKey key)
+    public void read(SelectionKey key) throws ClassNotFoundException
     {
         SocketChannel sc = (SocketChannel)key.channel();
         ByteBuffer buffer = ByteBuffer.allocateDirect(1024);
@@ -139,13 +141,13 @@ public class Client_Manager {
             int read = sc.read(buffer);
             buffer.flip();
             String temp = "";
-            try{
-            temp = decoder.decode(buffer).toString();
-            System.out.println(temp);
+            try
+            {
+                temp = decoder.decode(buffer).toString();
+                System.out.println(temp);                
             }
             catch(Exception e){}
             
-
         }
         catch(IOException e)
         {

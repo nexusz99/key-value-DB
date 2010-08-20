@@ -1,10 +1,11 @@
 package server;
 
+import java.util.Collections;
 import java.util.HashMap;
 
 
 public class StorageManager {
-    public static HashMap<String,Data> map = new HashMap<String, Data>();
+    public HashMap<Object,Data> query = (HashMap<Object, Data>) Collections.synchronizedMap(new HashMap<Object,Data>());
     
 
     private int insert()
@@ -30,8 +31,4 @@ public class StorageManager {
     }
 }
 
-class Data{
-    String key;
-    String value;
-    int point;
-}
+
