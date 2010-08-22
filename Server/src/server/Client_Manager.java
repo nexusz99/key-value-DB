@@ -40,6 +40,8 @@ public class Client_Manager {
         
      private Vector client = new Vector();
 
+     private Data data;
+     private QueryManager qm = new QueryManager();
      public void iniServer()
      {
          try
@@ -144,7 +146,8 @@ public class Client_Manager {
             try
             {
                 temp = decoder.decode(buffer).toString();
-                System.out.println(temp);                
+                data = qm.command_parser(temp); //쿼리를 받아서 처리..
+                QueryManager.queue.put(data); //put 인가 add 인가..[To do]
             }
             catch(Exception e){}
             
