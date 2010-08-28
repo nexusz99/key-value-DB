@@ -2,31 +2,21 @@ package server;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 
-public class StorageManager {
-    public HashMap<Object,Data> query = (HashMap<Object, Data>) Collections.synchronizedMap(new HashMap<Object,Data>());
-    
+public class StorageManager extends Thread{
+    public static Map<Object,Data> memory = Collections.synchronizedMap(new HashMap<Object,Data>());
 
-    private int insert()
-    {
-        int ret =0;
-        return ret;
-    }
-    private int update()
-    {
-        int ret=0;
-        return ret;
+    @Override
+    public void run() {
+
     }
 
-    private int delete()
+    public Data search(Data d)
     {
-        int ret = 0;
-        return ret;
-    }
-    private int search()
-    {
-        int ret =0;
+        Data ret = null;
+        //디스크에서 찾는 루틴
         return ret;
     }
 }

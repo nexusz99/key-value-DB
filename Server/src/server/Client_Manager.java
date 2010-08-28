@@ -3,10 +3,8 @@
 package server;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
@@ -40,7 +38,7 @@ public class Client_Manager {
         
      private Vector client = new Vector();
 
-     private Data data;
+     
      private QueryManager qm = new QueryManager();
      public void iniServer()
      {
@@ -138,6 +136,7 @@ public class Client_Manager {
     {
         SocketChannel sc = (SocketChannel)key.channel();
         ByteBuffer buffer = ByteBuffer.allocateDirect(1024);
+        Data data = null;
         try
         {
             int read = sc.read(buffer);
@@ -146,10 +145,21 @@ public class Client_Manager {
             try
             {
                 temp = decoder.decode(buffer).toString();
-                data = qm.command_parser(temp); //쿼리를 받아서 처리..
-                QueryManager.queue.put(data); //put 인가 add 인가..[To do]
+                if(temp.compareTo("")!=0)
+                {
+                    System.out.println(temp);
+                    //data = qm.command_parser(temp); //쿼리를 받아서 처리..
+                    //data.sock = sc;
+                    //QueryManager.queue.put(data); //put 인가 add 인가..[To do]
+
+                }else{
+                    sc.close();
+                }
+
             }
-            catch(Exception e){}
+            catch(Exception e){
+                System.out.println(e.getMessage());
+            }
             
         }
         catch(IOException e)
@@ -158,6 +168,18 @@ public class Client_Manager {
             removeClient(sc);
             info(sc.toString()+" is out");
             clearBuffer(buffer);
+        }
+    }
+
+    public static void Write(SocketChannel s , ByteBuffer b)
+    {
+        b.flip();
+        try
+        {
+            s.write(b);
+        } catch (IOException ex)
+        {
+            //log(Level.WARNING,"Client_Manager.write()",ex);
         }
     }
 

@@ -10,55 +10,37 @@ public class Worker extends Thread{
         boolean b=false;
         while(true)
         {
-           data = QueryManager.queue.poll();
-           cmd = data.cmd;
-           key = data.key;
-           value = data.value;
-
-           switch(cmdtype(cmd))
+           
+           try
            {
-               case 0: //insert
-                   b = insert(data);
-                   if(!b)
-                   {
-                       //디스크에서 데이터 찾기
-                   }
+               data = QueryManager.queue.poll();
+               cmd = data.cmd;
+               key = data.key;
+               value = data.value;
+               switch(cmdtype(cmd))
+               {
+                   case 0: //insert
+                       insert(data);
+                       break;
+                   case 1: //delete
+                       delete(data);
 
-                   break;
-               case 1: //delete
-                   b = delete(data);
-                   if(!b)
-                   {
-                       //디스크에서 데이터 찾기
-                   }
+                       break;
+                   case 2: //update
+                       update(data);
 
-                   break;
-               case 2: //update
-                   b = update(data);
-                   if(!b)
-                   {
-                       //디스크에서 데이터 찾기
-                   }
+                       break;
+                   case 3: //search
+                       data = search(data);
 
-                   break;
-               case 3: //search
-                   data = search(data);
-                   if(data==null)
-                   {
-                       // 디스크에서 데이터 찾기
-                   }
-                   else
-                   {
-
-                   }
-                   break;
-               default:
-                   break;
+                       break;
+               }
+               if(b)
+               {
+                   //소켓으로 성공적으로 완료되었다고 전송
+               }
            }
-           if(b)
-           {
-               //소켓으로 성공적으로 완료되었다고 전송
-           }
+           catch(Exception e){}
 
         }
     }
@@ -79,52 +61,103 @@ public class Worker extends Thread{
         return type;
     }
 
-    private boolean insert(Data d)
+    
+    private void insert(Data d)
     {
-       boolean ret=false;
-       boolean b = StorageManager.memory.containsKey(d);
-       if(!b)
+       Data tmp ;
+       tmp = Memory_Check(d);
+       if(tmp!=null) //true
        {
-           d.point = 0;
-           d.update=true;
-           d.del = false;
-           StorageManager.memory.put(d.key, d);
-           ret = true;
+           if(tmp.del)
+           {
+               tmp.del = false;
+               tmp.update = true;
+               tmp.value = d.value;
+               tmp.point=1;
+           }
+           else
+           {
+               //error !!
+           }
        }
-       return ret; //false 이면 메모리에 해당 값이 없거나 아에 없는 것이므로 디스크에서 검색을 해봐야함
+       else //false
+       {
+            boolean b;
+            b = Disk_Check(d);
+            if(!b) //false
+            {
+                d.point++;
+                StorageManager.memory.put(d.key, d);
+            }
+            else //true
+            {
+                //error!!
+            }
+       }
     }
 
-    private boolean update(Data d)
+    private void update(Data d)
     {
-        boolean ret = false;
-        Data data;
-        if((data = StorageManager.memory.get(d))!=null && data.del==false)
+        Data tmp;
+        tmp = Memory_Check(d);
+        if(tmp!=null) //true
         {
-            data.value = d.value;
-            data.point++;
-            data.update = true;
-            ret = insert(data);
+            tmp.value = d.value;
+            tmp.point++;
         }
-        return ret; // false일 경우 메모리에 해당 값이 없거나 아에 없는 것이므로 디스크에서 검색을 해봐야함
+        else //false
+        {
+            boolean b;
+            b = Disk_Check(d);
+            if(b)
+            {
+                Load_From_Disk(d);
+            }
+            else
+            {
+                //error!
+            }
+        }
+
     }
 
-    private boolean delete(Data d)
+    private void delete(Data d)
     {
-        boolean ret = false;
-        if(StorageManager.memory.containsKey(d.key)==true)
-        {
-            Data a = StorageManager.memory.get(d.key);
-            a.del = true;
-            a.update = true;
-            ret = true;
-        }
-        return ret; // false일 경우 메모리에 해당 값이 없거나 아에 없는 것이므로 디스크에서 검색을 해봐야함
+        boolean b;
+
     }
 
     private Data search(Data d)
     {
         Data ret=null;
-        if((ret = StorageManager.memory.get(d.key))!= null){}
+        if((ret = (Data) StorageManager.memory.get(d.key))!= null)
+        {
+            if(ret.del == true)
+            {
+                ret = null;
+            }
+        }
         return ret;
     }
+
+    private Data Memory_Check(Data d)
+    {
+        Data b ;
+        b = (Data) StorageManager.memory.get(d.key);
+        return b;
+    }
+
+    private boolean Disk_Check(Data d)
+    {
+        boolean b = false;
+        return b;
+    }
+
+    private Data Load_From_Disk(Data d)
+    {
+        Data load = null;;
+        return load;
+    }
+
+
 }
