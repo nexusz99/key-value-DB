@@ -147,10 +147,10 @@ public class Client_Manager {
                 temp = decoder.decode(buffer).toString();
                 if(temp.compareTo("")!=0)
                 {
-                    System.out.println(temp);
-                    //data = qm.command_parser(temp); //쿼리를 받아서 처리..
-                    //data.sock = sc;
-                    //QueryManager.queue.put(data); //put 인가 add 인가..[To do]
+                    //System.out.println(temp);
+                    data = qm.command_parser(temp); //쿼리를 받아서 처리..
+                    data.sock = sc;
+                    QueryManager.queue.put(data); //put 인가 add 인가..[To do]
 
                 }else{
                     sc.close();
