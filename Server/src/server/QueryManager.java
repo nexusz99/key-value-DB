@@ -25,7 +25,7 @@ public class QueryManager {
 
     private Data parser(String[] q)
     {
-        Data d = null;
+        Data d = new Data();
         if(q[0].compareTo("insert")==0) //insert | key | = | a | value | = | b | from | = | c
         {
             d.cmd = q[0]; d.key = q[3]; d.value = q[6]; d.table = q[9]; d.point=0; d.update=true;
