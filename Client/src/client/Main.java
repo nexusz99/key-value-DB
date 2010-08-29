@@ -34,10 +34,8 @@ public class Main {
             System.out.print(">");
             try
             {
-                input = in.readLine();
-                
-                test.Send(data);
-                
+                input = in.readLine(); 
+                test.Send(input);
             }
             catch(IOException e)
             {
