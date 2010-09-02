@@ -1,13 +1,25 @@
 package server;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
+import java.util.HashMap;
+
 public class Worker extends Thread{
+
+    HashMap<Object,Data> tmpMap;
+    SocketChannel sc;
 
     @Override
     public void run()
     {
         Data data = null;
         String cmd=null,key=null,value=null;
-        boolean b=false;
+        ByteBuffer buf = ByteBuffer.allocate(10);
+        int b;
+        int i;
         while(true)
         {
            
@@ -17,30 +29,67 @@ public class Worker extends Thread{
                cmd = data.cmd;
                key = data.key;
                value = data.value;
-               switch(cmdtype(cmd))
+               sc = data.sock;
+               i=cmdtype(cmd);
+               switch(i)
                {
                    case 0: //insert
-                       insert(data);
+                       b = insert(data);
+                       switch(b)
+                       {
+                           case 0: //성공
+                               
+                               Socket s = data.sock.socket();
+                               DataOutputStream out = new DataOutputStream(s.getOutputStream());
+                               out.writeUTF("ok");
+                               break;
+                           case 1: //해당 테이블 없음
+                               break;
+                           case 2: //해당 키 없음
+                               break;
+                       }
+                       data = null;
                        break;
                    case 1: //delete
-                       delete(data);
-
+                       b = delete(data);
+                       data = null;
                        break;
                    case 2: //update
-                       update(data);
-
+                       b = update(data);
+                       data = null;
                        break;
                    case 3: //search
                        data = search(data);
-
+                       break;
+                   case 4: //create
+                       b =create(data.table);
+                       switch(b)
+                       {
+                           case 0: //성공
+                               try
+                               {
+                                   buf.put("ok".getBytes());
+                                   buf.flip();
+                                   data.sock.write(buf);
+                               }
+                               catch(Exception e)
+                               {
+                                   System.out.println(e.getMessage());
+                               }
+                               break;
+                           case 1: //해당 테이블 없음
+                               break;
+                           case 2: //해당 키 없음
+                               break;
+                       }
                        break;
                }
-               if(b)
-               {
-                   //소켓으로 성공적으로 완료되었다고 전송
-               }
+               
+
            }
-           catch(Exception e){}
+           catch(Exception e){
+               //System.out.println(e.getMessage());
+           }
 
         }
     }
@@ -56,108 +105,163 @@ public class Worker extends Thread{
             type = 2;
         else if(cmd.compareTo("search")==0)
             type = 3;
+        else if(cmd.compareTo("create")==0)
+            type = 4;
         else
             type = -1;
         return type;
     }
 
     
-    private void insert(Data d)
+    private int insert(Data d)
     {
-       Data tmp ;
-       tmp = Memory_Check(d);
-       if(tmp!=null) //true
+       int ret = -1;
+       tmpMap = Table_Check(d.table);
+       if(tmpMap!=null)
        {
-           if(tmp.del)
-           {
-               tmp.del = false;
-               tmp.update = true;
-               tmp.value = d.value;
-               tmp.point=1;
-           }
-           else
-           {
-               //error !!
-           }
-       }
-       else //false
-       {
-            boolean b;
-            b = Disk_Check(d);
-            if(!b) //false
+            Data t;
+            if((t=find(d.key,tmpMap))==null)
             {
                 d.point++;
-                StorageManager.memory.put(d.key, d);
-            }
-            else //true
-            {
-                //error!!
-            }
-       }
-    }
-
-    private void update(Data d)
-    {
-        Data tmp;
-        tmp = Memory_Check(d);
-        if(tmp!=null) //true
-        {
-            tmp.value = d.value;
-            tmp.point++;
-        }
-        else //false
-        {
-            boolean b;
-            b = Disk_Check(d);
-            if(b)
-            {
-                Load_From_Disk(d);
+                d.update = true;
+                tmpMap.put(d.key, d);
+                ret = 0;
             }
             else
             {
-                //error!
+                if(t.del)
+                {
+                    t.del=false;
+                    t.update = true;
+                    t.value = d.value;
+                    ret = 0;
+                }else{
+                    ret = 2; //이미 존재하는 키
+                }
             }
-        }
-
+       }
+       else
+       {
+            ret = 1; //테이블 없음
+       }
+       tmpMap = null;
+       return ret;
     }
 
-    private void delete(Data d)
+    private int update(Data d)
     {
-        boolean b;
+        int ret=-1;
+        tmpMap = Table_Check(d.table);
+        if(tmpMap!=null)
+        {
+            Data t = find(d.key, tmpMap);
+            if(t!=null && !t.del)
+            {
+                t.value = d.value;
+                t.point++;
+            }
+            else
+            {
+                ret = 2; //해당 키 없음
+            }
+        }
+        else
+        {
+            ret = 1; //Table not exist
+        }
+        tmpMap = null;
+        return ret;
+    }
 
+    private int delete(Data d)
+    {
+        int ret = -1;
+        tmpMap = Table_Check(d.table);
+        if(tmpMap!=null){
+            Data t = find(d.key,tmpMap);
+            if(t!=null && !t.del)
+            {
+                t.del = true;
+                t.update = true;
+            }else if(t==null){
+                ret = 2; //해당 키 없음..
+            }
+        }else{
+            ret = 1; //table not exist
+        }
+        tmpMap = null;
+        return ret;
     }
 
     private Data search(Data d)
     {
-        Data ret=null;
-        if((ret = (Data) StorageManager.memory.get(d.key))!= null)
+        Data ret = null;
+        tmpMap = Table_Check(d.table);
+        if(tmpMap!=null)
         {
-            if(ret.del == true)
-            {
-                ret = null;
-            }
+            ret = find(d.key,tmpMap);
         }
         return ret;
     }
 
-    private Data Memory_Check(Data d)
+    private int create(String table)
     {
-        Data b ;
-        b = (Data) StorageManager.memory.get(d.key);
+        int ret;
+        ret = Create_Table(table);
+        return ret;
+    }
+
+    private Data find(String key,HashMap<Object,Data> m) //테이블메모리에서 원하는 키/벨류 쌍 찾기
+    {
+        Data b = null;
+        b = m.get(key);
         return b;
     }
 
-    private boolean Disk_Check(Data d)
+    private HashMap<Object,Data> Table_Check(String table)
     {
-        boolean b = false;
-        return b;
+        HashMap<Object,Data> ret = null;
+        ret = StorageManager.table_tree.get(table);
+        if(ret==null)
+        {
+            int i = check_index(table);
+            if(i==0)
+            {
+                ret = Load_Table_From_Disk(i);
+            }
+        }
+
+        return ret;
     }
 
-    private Data Load_From_Disk(Data d)
+    private int check_index(String table)
     {
-        Data load = null;;
-        return load;
+        int i = -1;
+        return i;
+    }
+    private HashMap<Object,Data> Load_Table_From_Disk(int index)
+    {
+        HashMap<Object,Data> map = new HashMap<Object, Data>();
+        return map;
     }
 
-
+    private int Create_Table(String table)
+    {
+        int ret = -1,i;
+        tmpMap = Table_Check(table);
+        if(tmpMap==null)
+        {
+            i = check_index(table);
+            if(i==0)
+                ret = 1; //이미 존재하는 테이블
+            else{
+                tmpMap = new HashMap<Object, Data>();
+                StorageManager.table_tree.put(table, tmpMap);
+                ret = 0;
+            }
+        }else{
+            ret = 1; //이미 존재하는 테이블
+        }
+        return ret;
+    }
 }

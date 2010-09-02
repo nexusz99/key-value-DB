@@ -42,6 +42,10 @@ public class QueryManager {
         {
             d.cmd = q[0]; d.key=q[3]; d.table = q[6];
         }
+        else if(q[0].compareTo("create")==0) //create | table | = | asdf |
+        {
+            d.cmd = q[0]; d.table = q[3];
+        }
         return d;
     }
      
