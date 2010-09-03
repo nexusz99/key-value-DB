@@ -17,7 +17,7 @@ public class Worker extends Thread{
     {
         Data data = null;
         String cmd=null,key=null,value=null;
-        ByteBuffer buf = ByteBuffer.allocate(10);
+        ByteBuffer buf;
         int b;
         int i;
         while(true)
@@ -39,9 +39,16 @@ public class Worker extends Thread{
                        {
                            case 0: //성공
                                
-                               Socket s = data.sock.socket();
-                               DataOutputStream out = new DataOutputStream(s.getOutputStream());
-                               out.writeUTF("ok");
+                               String f= "\nok";
+                               try{
+                               buf = ByteBuffer.allocate(30);
+                               buf.put(f.getBytes());
+                               buf.flip();
+                               sc.write(buf);
+                               buf.rewind();
+                               }
+                               catch(Exception e2){System.out.println(e2.getStackTrace());}
+                               //buf=null;
                                break;
                            case 1: //해당 테이블 없음
                                break;
@@ -60,6 +67,21 @@ public class Worker extends Thread{
                        break;
                    case 3: //search
                        data = search(data);
+                       try
+                       {
+                           buf = ByteBuffer.allocate(30);
+                           String f= data.value;
+                           buf.put(f.getBytes());
+                           buf.flip();
+                           sc.write(buf);
+                           buf.clear();
+                           buf=null;
+                       }
+                       catch(Exception e)
+                       {
+                           System.out.println(e.getMessage());
+                       }
+
                        break;
                    case 4: //create
                        b =create(data.table);
@@ -68,9 +90,13 @@ public class Worker extends Thread{
                            case 0: //성공
                                try
                                {
-                                   buf.put("ok".getBytes());
+                                   buf = ByteBuffer.allocate(30);
+                                   String f= "\nok";
+                                   buf.put(f.getBytes());
                                    buf.flip();
-                                   data.sock.write(buf);
+                                   sc.write(buf);
+                                   buf.clear();
+                                   buf = null;
                                }
                                catch(Exception e)
                                {

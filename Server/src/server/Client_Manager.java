@@ -72,7 +72,7 @@ public class Client_Manager {
         try
         {
             while(true)
-            {
+             {
                 info("wait client");
                 selector.select();
 
@@ -108,6 +108,7 @@ public class Client_Manager {
         {
             sc = server.accept();
             registerChannel(selector, sc, SelectionKey.OP_READ);
+
             info(sc.toString()+"접속");
         }
         catch(ClosedChannelException e)

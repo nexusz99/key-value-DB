@@ -11,5 +11,4 @@ public class Data{
     boolean del; //이 데이터가 삭제됬는지에 대한 플래그
     boolean update; //업데이트가 되었는지 체크 -> 디스크에 쓸지 안쓸지 결정
     SocketChannel sock; //update시 보낼 sock
-    int message; //메모리 체크를 할 경우 나오는 에러메세지
 }
