@@ -1,23 +1,21 @@
 package server;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 
 public class Worker extends Thread{
 
-    HashMap<Object,Data> tmpMap;
-    SocketChannel sc;
+    private HashMap<Object,Data> tmpMap;
+    private SocketChannel sc;
 
     @Override
     public void run()
     {
         Data data = null;
         String cmd=null,key=null,value=null;
-        ByteBuffer buf;
+        ByteBuffer buf  = ByteBuffer.allocate(30);
         int b;
         int i;
         while(true)
@@ -35,51 +33,137 @@ public class Worker extends Thread{
                {
                    case 0: //insert
                        b = insert(data);
-                       switch(b)
+                       try
                        {
-                           case 0: //성공
-                               
-                               String f= "\nok";
-                               try{
-                               buf = ByteBuffer.allocate(30);
-                               buf.put(f.getBytes());
-                               buf.flip();
-                               sc.write(buf);
-                               buf.rewind();
-                               }
-                               catch(Exception e2){System.out.println(e2.getStackTrace());}
-                               //buf=null;
-                               break;
-                           case 1: //해당 테이블 없음
-                               break;
-                           case 2: //해당 키 없음
-                               break;
+                           switch(b)
+                           {
+                               case 0: //성공
+
+                                   String f= "ok";
+                                   //buf.clear();
+                                   buf.put(f.getBytes());
+                                   buf.flip();
+                                   sc.write(buf);
+                                   buf.rewind();
+                                   break;
+                               case 1: //해당 테이블 없음
+                                   f = "1";
+                                   //buf.clear();
+                                   buf.put(f.getBytes());
+                                   buf.flip();
+                                   sc.write(buf);
+                                   buf.rewind();
+                                   break;
+                               case 2: //해당 키 없음
+                                   f = "2";
+                                   //buf.clear();
+                                   buf.put(f.getBytes());
+                                   buf.flip();
+                                   sc.write(buf);
+                                   buf.rewind();
+                                   break;
+                           }
+                       }
+                       catch(IOException ex)
+                       {
+                           System.out.println(ex.getMessage());
                        }
                        data = null;
                        break;
                    case 1: //delete
                        b = delete(data);
+                       try
+                       {
+                           switch(b)
+                           {
+                               case 0: //성공
+
+                                   String f= "ok";
+                                   //buf.clear();
+                                   buf.put(f.getBytes());
+                                   buf.flip();
+                                   sc.write(buf);
+                                   buf.rewind();
+                                   break;
+                               case 1: //해당 테이블 없음
+                                   f = "1";
+                                   //buf.clear();
+                                   buf.put(f.getBytes());
+                                   buf.flip();
+                                   sc.write(buf);
+                                   buf.rewind();
+                                   break;
+                               case 2: //해당 키 없음
+                                   f = "2";
+                                   //buf.clear();
+                                   buf.put(f.getBytes());
+                                   buf.flip();
+                                   sc.write(buf);
+                                   buf.rewind();
+                                   break;
+                           }
+                       }
+                       catch(IOException ex)
+                       {
+                           System.out.println(ex.getMessage());
+                       }
                        data = null;
                        break;
                    case 2: //update
                        b = update(data);
+                       try
+                       {
+                           switch(b)
+                           {
+                               case 0: //성공
+
+                                   String f= "ok";
+                                   //buf.clear();
+                                   buf.put(f.getBytes());
+                                   buf.flip();
+                                   sc.write(buf);
+                                   buf.rewind();
+                                   break;
+                               case 1: //해당 테이블 없음
+                                   f = "1";
+                                   //buf.clear();
+                                   buf.put(f.getBytes());
+                                   buf.flip();
+                                   sc.write(buf);
+                                   buf.rewind();
+                                   break;
+                               case 2: //해당 키 없음
+                                   f = "2";
+                                   //buf.clear();
+                                   buf.put(f.getBytes());
+                                   buf.flip();
+                                   sc.write(buf);
+                                   buf.rewind();
+                                   break;
+                           }
+                       }
+                       catch(IOException e)
+                       {
+                           System.out.println(e.getMessage());
+                       }
                        data = null;
                        break;
                    case 3: //search
                        data = search(data);
                        try
                        {
-                           buf = ByteBuffer.allocate(30);
+                           //buf = ByteBuffer.allocate(30);
                            String f= data.value;
-                           buf.put(f.getBytes());
+                           byte asdf[] = f.getBytes();
+                           buf.put(f.getBytes("EUC-KR"));
                            buf.flip();
                            sc.write(buf);
                            buf.clear();
-                           buf=null;
+                           //buf=null;
                        }
                        catch(Exception e)
                        {
-                           System.out.println(e.getMessage());
+                           System.out.println(e.getCause());
                        }
 
                        break;
@@ -90,13 +174,13 @@ public class Worker extends Thread{
                            case 0: //성공
                                try
                                {
-                                   buf = ByteBuffer.allocate(30);
-                                   String f= "\nok";
+                                //   buf = ByteBuffer.allocate(30);
+                                   String f= "ok";
                                    buf.put(f.getBytes());
                                    buf.flip();
                                    sc.write(buf);
                                    buf.clear();
-                                   buf = null;
+                             //      buf = null;
                                }
                                catch(Exception e)
                                {
@@ -185,6 +269,7 @@ public class Worker extends Thread{
             {
                 t.value = d.value;
                 t.point++;
+                ret = 0;
             }
             else
             {
@@ -209,6 +294,7 @@ public class Worker extends Thread{
             {
                 t.del = true;
                 t.update = true;
+                ret = 0;
             }else if(t==null){
                 ret = 2; //해당 키 없음..
             }
@@ -226,6 +312,8 @@ public class Worker extends Thread{
         if(tmpMap!=null)
         {
             ret = find(d.key,tmpMap);
+            if(ret.del)
+                ret = null;
         }
         return ret;
     }
@@ -251,7 +339,7 @@ public class Worker extends Thread{
         if(ret==null)
         {
             int i = check_index(table);
-            if(i==0)
+            if(i==-1)
             {
                 ret = Load_Table_From_Disk(i);
             }
@@ -263,11 +351,12 @@ public class Worker extends Thread{
     private int check_index(String table)
     {
         int i = -1;
+        if(StorageManager.table_index.containsKey(table)) i = 1;
         return i;
     }
     private HashMap<Object,Data> Load_Table_From_Disk(int index)
     {
-        HashMap<Object,Data> map = new HashMap<Object, Data>();
+        HashMap<Object,Data> map = null;
         return map;
     }
 
@@ -283,6 +372,8 @@ public class Worker extends Thread{
             else{
                 tmpMap = new HashMap<Object, Data>();
                 StorageManager.table_tree.put(table, tmpMap);
+                StorageManager.table_index.put(table, StorageManager.lastIndexpointer);
+
                 ret = 0;
             }
         }else{
