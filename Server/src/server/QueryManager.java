@@ -45,7 +45,8 @@ public class QueryManager {
         else if(q[0].compareTo("create")==0) //create | table | = | asdf |
         {
             d.cmd = q[0]; d.table = q[3];
-        }
+        }else if(q[0].compareTo("write")==0) d.cmd = "write";
+
         return d;
     }
      

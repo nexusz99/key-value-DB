@@ -8,12 +8,12 @@ package server;
 public class Main {
     
     public static void main(String[] args) {
-        Worker work = new Worker();
+        
         StorageManager sm = new StorageManager();
-
+        Worker work = new Worker(sm);
         sm.Storage_Start();
 
-        /*work.setDaemon(true);
+        work.setDaemon(true);
         sm.setDaemon(true);
 
         work.start();      
@@ -22,7 +22,7 @@ public class Main {
         Client_Manager cm = new Client_Manager();
         cm.initLog();
         cm.iniServer();
-        cm.startServer();*/
+        cm.startServer();
 
 
         

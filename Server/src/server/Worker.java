@@ -4,18 +4,23 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class Worker extends Thread{
 
     private HashMap<Object,Data> tmpMap;
     private SocketChannel sc;
-
+    StorageManager sm=null;
+    public Worker(StorageManager a){
+        sm = a;
+    }
     @Override
     public void run()
     {
         Data data = null;
         String cmd=null,key=null,value=null;
-        ByteBuffer buf  = ByteBuffer.allocate(30);
+        ByteBuffer buf  = ByteBuffer.allocate(1300);
         int b;
         int i;
         while(true)
@@ -44,7 +49,7 @@ public class Worker extends Thread{
                                    buf.put(f.getBytes());
                                    buf.flip();
                                    sc.write(buf);
-                                   buf.rewind();
+                                   buf.clear();
                                    break;
                                case 1: //해당 테이블 없음
                                    f = "1";
@@ -52,7 +57,7 @@ public class Worker extends Thread{
                                    buf.put(f.getBytes());
                                    buf.flip();
                                    sc.write(buf);
-                                   buf.rewind();
+                                   buf.clear();
                                    break;
                                case 2: //해당 키 없음
                                    f = "2";
@@ -60,7 +65,7 @@ public class Worker extends Thread{
                                    buf.put(f.getBytes());
                                    buf.flip();
                                    sc.write(buf);
-                                   buf.rewind();
+                                   buf.clear();
                                    break;
                            }
                        }
@@ -83,7 +88,7 @@ public class Worker extends Thread{
                                    buf.put(f.getBytes());
                                    buf.flip();
                                    sc.write(buf);
-                                   buf.rewind();
+                                   buf.clear();
                                    break;
                                case 1: //해당 테이블 없음
                                    f = "1";
@@ -91,7 +96,7 @@ public class Worker extends Thread{
                                    buf.put(f.getBytes());
                                    buf.flip();
                                    sc.write(buf);
-                                   buf.rewind();
+                                   buf.clear();
                                    break;
                                case 2: //해당 키 없음
                                    f = "2";
@@ -99,7 +104,7 @@ public class Worker extends Thread{
                                    buf.put(f.getBytes());
                                    buf.flip();
                                    sc.write(buf);
-                                   buf.rewind();
+                                   buf.clear();
                                    break;
                            }
                        }
@@ -122,7 +127,7 @@ public class Worker extends Thread{
                                    buf.put(f.getBytes());
                                    buf.flip();
                                    sc.write(buf);
-                                   buf.rewind();
+                                   buf.clear();
                                    break;
                                case 1: //해당 테이블 없음
                                    f = "1";
@@ -130,7 +135,7 @@ public class Worker extends Thread{
                                    buf.put(f.getBytes());
                                    buf.flip();
                                    sc.write(buf);
-                                   buf.rewind();
+                                   buf.clear();
                                    break;
                                case 2: //해당 키 없음
                                    f = "2";
@@ -138,7 +143,7 @@ public class Worker extends Thread{
                                    buf.put(f.getBytes());
                                    buf.flip();
                                    sc.write(buf);
-                                   buf.rewind();
+                                   buf.clear();
                                    break;
                            }
                        }
@@ -155,7 +160,7 @@ public class Worker extends Thread{
                            //buf = ByteBuffer.allocate(30);
                            String f= data.value;
                            byte asdf[] = f.getBytes();
-                           buf.put(f.getBytes("EUC-KR"));
+                           buf.put(asdf);
                            buf.flip();
                            sc.write(buf);
                            buf.clear();
@@ -164,6 +169,10 @@ public class Worker extends Thread{
                        catch(Exception e)
                        {
                            System.out.println(e.getCause());
+                           buf.put("1".getBytes());
+                           buf.flip();
+                           sc.write(buf);
+                           buf.clear();
                        }
 
                        break;
@@ -188,10 +197,27 @@ public class Worker extends Thread{
                                }
                                break;
                            case 1: //해당 테이블 없음
+                               String f= "1";
+                               buf.put(f.getBytes());
+                               buf.flip();
+                               sc.write(buf);
+                               buf.clear();
                                break;
                            case 2: //해당 키 없음
+                               f= "2";
+                               buf.put(f.getBytes());
+                               buf.flip();
+                               sc.write(buf);
+                               buf.clear();
                                break;
                        }
+                       break;
+                   case 5:
+                       tmp__Write();
+                       buf.put("ok".getBytes());
+                       buf.flip();
+                       sc.write(buf);
+                       buf.clear();
                        break;
                }
                
@@ -217,6 +243,8 @@ public class Worker extends Thread{
             type = 3;
         else if(cmd.compareTo("create")==0)
             type = 4;
+        else if(cmd.compareTo("write")==0)
+            type= 5;
         else
             type = -1;
         return type;
@@ -372,13 +400,24 @@ public class Worker extends Thread{
             else{
                 tmpMap = new HashMap<Object, Data>();
                 StorageManager.table_tree.put(table, tmpMap);
-                StorageManager.table_index.put(table, StorageManager.lastIndexpointer);
-
+                long currentAddress = sm.firstPageEndaddress-(sm.pageSize*(sm.tableCount+1));
+                StorageManager.table_index.put(table,currentAddress );//페이지의 첫 부분
+                sm.writeTableindex(table); //테이블 인덱스에 쓰고
+                sm.writePage(currentAddress, tmpMap); //실제 테이블을 기록하고.
                 ret = 0;
             }
         }else{
             ret = 1; //이미 존재하는 테이블
         }
         return ret;
+    }
+
+    private void tmp__Write(){
+        Set<Map.Entry<String,Long>> indexSet = sm.table_index.entrySet();
+        for(Map.Entry<String,Long> imap : indexSet)
+        {
+            HashMap<Object,Data> dhmap = sm.table_tree.get(imap.getKey());
+            sm.writePage(imap.getValue(), dhmap);
+        }
     }
 }

@@ -1,9 +1,10 @@
+
+
 package server;
 
 import java.io.Serializable;
 
 public class PageIndex implements Serializable{
-    int id;
-    String table;
+    String key;
     long pointer;
 }
